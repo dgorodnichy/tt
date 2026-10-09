@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"strings"
+	"unicode/utf8"
 )
 
 var (
@@ -16,12 +17,12 @@ type Project struct {
 }
 
 func NewProject(name string, description string) (*Project, error) {
-	n := strings.Trim(name, " ")
+	n := strings.TrimSpace(name)
 	if n == "" {
 		return nil, ErrBlankName
 	}
 
-	if len([]rune(n)) >= 100 {
+	if utf8.RuneCountInString(n) > 100 {
 		return nil, ErrTooLongName
 	}
 

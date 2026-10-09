@@ -7,10 +7,10 @@ import (
 )
 
 func TestNewProjectTrim(t *testing.T) {
-	name := " firstProject "
+	name := " \n\t firstProject "
 	got, err := NewProject(name, "")
 	if err != nil {
-		t.Errorf("Unexpected error: %d", err)
+		t.Fatalf("Unexpected error: %v", err)
 	}
 
 	if got.name != "firstProject" {
@@ -44,7 +44,7 @@ func TestNewProjectSpacesName(t *testing.T) {
 }
 
 func TestNewProjectCyrillicValid(t *testing.T) {
-	name := strings.Repeat("ф", 99)
+	name := strings.Repeat("ф", 100)
 	_, err := NewProject(name, "")
 	if err != nil {
 		t.Error("cyrillic name length validation failed")
@@ -65,7 +65,7 @@ func TestNewProject(t *testing.T) {
 
 	got, err := NewProject(name, description)
 	if err != nil {
-		t.Errorf("unexpected error: %d", err)
+		t.Errorf("unexpected error: %v", err)
 	}
 
 	if got.name != "firstProject" {
