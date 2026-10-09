@@ -13,8 +13,8 @@ func TestNewProjectTrim(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	if got.name != "firstProject" {
-		t.Errorf("Incorrect trim: '%s'. Expected: 'firstProject'", got.name)
+	if got.Name() != "firstProject" {
+		t.Errorf("Incorrect trim: '%s'. Expected: 'firstProject'", got.Name())
 	}
 }
 
@@ -59,20 +59,83 @@ func TestNewProjectCyrillicInvalid(t *testing.T) {
 	}
 }
 
+func TestSetName(t *testing.T) {
+	project, err := NewProject("oldName", "")
+	if err != nil {
+		t.Fatal("Unexpected error during create project")
+	}
+
+	err = project.SetName("newName")
+	if err != nil {
+		t.Fatal("Unexpected error during rename project")
+	}
+
+	if project.Name() != "newName" {
+		t.Errorf("error during rename project: %v", project.Name())
+	}
+}
+
+func TestSetNameBlank(t *testing.T) {
+	project, err := NewProject("name", "")
+	if err != nil {
+		t.Fatal("Unexpected error during create project")
+	}
+	newName := " "
+	err = project.SetName(newName)
+	if !errors.Is(err, ErrBlankName) {
+		t.Fatal("unexpected error during rename project")
+	}
+
+	if project.Name() != "name" {
+		t.Error("name value should be initial")
+	}
+}
+
+func TestSetNameTooLong(t *testing.T) {
+	project, err := NewProject("name", "")
+	if err != nil {
+		t.Fatal("Unexpected error during create project")
+	}
+	newName := strings.Repeat("a", 101)
+	err = project.SetName(newName)
+	if !errors.Is(err, ErrTooLongName) {
+		t.Fatal("too long validation failed")
+	}
+
+	if project.Name() != "name" {
+		t.Error("name value should be initial")
+	}
+}
+
+func TestSetNameTrim(t *testing.T) {
+	project, err := NewProject("name", "")
+	if err != nil {
+		t.Fatal("Unexpected error during create project")
+	}
+	newName := " a "
+	err = project.SetName(newName)
+	if err != nil {
+		t.Fatal("unexpected error during rename project")
+	}
+	if project.Name() != "a" {
+		t.Error("incorrect trim during setting new name")
+	}
+}
+
 func TestNewProject(t *testing.T) {
 	name := "firstProject"
 	description := "Description for the first project"
 
 	got, err := NewProject(name, description)
 	if err != nil {
-		t.Errorf("unexpected error: %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if got.name != "firstProject" {
-		t.Errorf("incorrect name: '%s'. Expected: 'firstProject'", got.name)
+	if got.Name() != "firstProject" {
+		t.Fatalf("incorrect name: '%s'. Expected: 'firstProject'", got.Name())
 	}
 
-	if got.description != "Description for the first project" {
-		t.Errorf("incorrect description: '%s'. Expected: 'Description for the first project'", got.description)
+	if got.Description() != "Description for the first project" {
+		t.Errorf("incorrect description: '%s'. Expected: 'Description for the first project'", got.Description())
 	}
 }
