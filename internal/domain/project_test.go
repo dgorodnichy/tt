@@ -9,24 +9,27 @@ import (
 func TestNewProject(t *testing.T) {
 	tests := []struct {
 		testName        string
+		id              string
 		name            string
+		wantID          string
 		wantName        string
 		wantDescription string
 		wantErr         error
 	}{
-		{testName: "валидное имя", name: "firstProject", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
-		{testName: "нормализация", name: " \n\t firstProject ", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
-		{testName: "длинное имя(латиница)", name: strings.Repeat("a", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
-		{testName: "длинное имя(кириллица)", name: strings.Repeat("ф", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
-		{testName: "пустое имя", name: "", wantName: "", wantDescription: "", wantErr: ErrBlankName},
-		{testName: "имя из пробелов", name: "   ", wantName: "", wantDescription: "", wantErr: ErrBlankName},
-		{testName: "имя 100 символов(латиница)", name: strings.Repeat("a", 100), wantName: strings.Repeat("a", 100), wantDescription: "firstDescription", wantErr: nil},
-		{testName: "имя 100 символов(кириллица)", name: strings.Repeat("ф", 100), wantName: strings.Repeat("ф", 100), wantDescription: "firstDescription", wantErr: nil},
+		{testName: "валидное имя", id: "1", wantID: "1", name: "firstProject", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
+		{testName: "пустой id", id: "", wantID: "1", name: "firstProject", wantName: "firstProject", wantDescription: "firstDescription", wantErr: ErrBlankID},
+		{testName: "нормализация", id: "1", wantID: "1", name: " \n\t firstProject ", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
+		{testName: "длинное имя(латиница)", id: "1", wantID: "1", name: strings.Repeat("a", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
+		{testName: "длинное имя(кириллица)", id: "1", wantID: "1", name: strings.Repeat("ф", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
+		{testName: "пустое имя", id: "1", wantID: "1", name: "", wantName: "", wantDescription: "", wantErr: ErrBlankName},
+		{testName: "имя из пробелов", id: "1", wantID: "1", name: "   ", wantName: "", wantDescription: "", wantErr: ErrBlankName},
+		{testName: "имя 100 символов(латиница)", id: "1", wantID: "1", name: strings.Repeat("a", 100), wantName: strings.Repeat("a", 100), wantDescription: "firstDescription", wantErr: nil},
+		{testName: "имя 100 символов(кириллица)", id: "1", wantID: "1", name: strings.Repeat("ф", 100), wantName: strings.Repeat("ф", 100), wantDescription: "firstDescription", wantErr: nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			got, err := NewProject(tt.name, "firstDescription")
+			got, err := NewProject(tt.id, tt.name, "firstDescription")
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("got error: %v, want %v", err, tt.wantErr)
 			}
@@ -35,12 +38,16 @@ func TestNewProject(t *testing.T) {
 				return
 			}
 
+			if got.ID() != tt.wantID {
+				t.Errorf("got id: %q, want %q", got.ID(), tt.wantID)
+			}
+
 			if got.Name() != tt.wantName {
-				t.Fatalf("got name: %v, want %v", got.Name(), tt.wantName)
+				t.Errorf("got name: %q, want %q", got.Name(), tt.wantName)
 			}
 
 			if got.Description() != tt.wantDescription {
-				t.Errorf("got description: %v, want %v", got.Description(), tt.wantDescription)
+				t.Errorf("got description: %q, want %q", got.Description(), tt.wantDescription)
 			}
 		})
 	}
@@ -65,7 +72,7 @@ func TestSetName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			project, err := NewProject("Microservice", "")
+			project, err := NewProject("1", "Microservice", "")
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

@@ -7,13 +7,19 @@ import (
 )
 
 var (
+	ErrBlankID     = errors.New("blank id")
 	ErrBlankName   = errors.New("blank name")
 	ErrTooLongName = errors.New("too long name")
 )
 
 type Project struct {
+	id          string
 	name        string
 	description string
+}
+
+func (p *Project) ID() string {
+	return p.id
 }
 
 func (p *Project) Name() string {
@@ -33,6 +39,13 @@ func (p *Project) SetName(name string) error {
 	return nil
 }
 
+func validateID(id string) error {
+	if id == "" {
+		return ErrBlankID
+	}
+	return nil
+}
+
 func normalizeName(name string) string {
 	return strings.TrimSpace(name)
 }
@@ -48,12 +61,16 @@ func validateName(name string) error {
 	return nil
 }
 
-func NewProject(name string, description string) (*Project, error) {
-	n := normalizeName(name)
-	err := validateName(n)
+func NewProject(id string, name string, description string) (*Project, error) {
+	name = normalizeName(name)
+	err := validateName(name)
+	if err != nil {
+		return nil, err
+	}
+	err = validateID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Project{name: n, description: description}, nil
+	return &Project{id: id, name: name, description: description}, nil
 }
