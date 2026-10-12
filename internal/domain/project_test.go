@@ -6,136 +6,78 @@ import (
 	"testing"
 )
 
-func TestNewProjectTrim(t *testing.T) {
-	name := " \n\t firstProject "
-	got, err := NewProject(name, "")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
+func TestNewProject(t *testing.T) {
+	tests := []struct {
+		testName        string
+		name            string
+		wantName        string
+		wantDescription string
+		wantErr         error
+	}{
+		{testName: "валидное имя", name: "firstProject", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
+		{testName: "нормализация", name: " \n\t firstProject ", wantName: "firstProject", wantDescription: "firstDescription", wantErr: nil},
+		{testName: "длинное имя(латиница)", name: strings.Repeat("a", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
+		{testName: "длинное имя(кириллица)", name: strings.Repeat("ф", 101), wantName: "", wantDescription: "", wantErr: ErrTooLongName},
+		{testName: "пустое имя", name: "", wantName: "", wantDescription: "", wantErr: ErrBlankName},
+		{testName: "имя из пробелов", name: "   ", wantName: "", wantDescription: "", wantErr: ErrBlankName},
+		{testName: "имя 100 символов(латиница)", name: strings.Repeat("a", 100), wantName: strings.Repeat("a", 100), wantDescription: "firstDescription", wantErr: nil},
+		{testName: "имя 100 символов(кириллица)", name: strings.Repeat("ф", 100), wantName: strings.Repeat("ф", 100), wantDescription: "firstDescription", wantErr: nil},
 	}
 
-	if got.Name() != "firstProject" {
-		t.Errorf("Incorrect trim: '%s'. Expected: 'firstProject'", got.Name())
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			got, err := NewProject(tt.name, "firstDescription")
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("got error: %v, want %v", err, tt.wantErr)
+			}
 
-func TestNewProjectLength(t *testing.T) {
-	name := strings.Repeat("a", 101)
-	_, err := NewProject(name, "")
+			if tt.wantErr != nil {
+				return
+			}
 
-	if !errors.Is(err, ErrTooLongName) {
-		t.Error("name length validation failed")
-	}
-}
+			if got.Name() != tt.wantName {
+				t.Fatalf("got name: %v, want %v", got.Name(), tt.wantName)
+			}
 
-func TestNewProjectBlankName(t *testing.T) {
-	name := ""
-	_, err := NewProject(name, "")
-	if !errors.Is(err, ErrBlankName) {
-		t.Error("name blank value validation failed")
-	}
-}
-
-func TestNewProjectSpacesName(t *testing.T) {
-	name := "    "
-	_, err := NewProject(name, "")
-	if !errors.Is(err, ErrBlankName) {
-		t.Error("name blank value validation failed")
-	}
-}
-
-func TestNewProjectCyrillicValid(t *testing.T) {
-	name := strings.Repeat("ф", 100)
-	_, err := NewProject(name, "")
-	if err != nil {
-		t.Error("cyrillic name length validation failed")
-	}
-}
-
-func TestNewProjectCyrillicInvalid(t *testing.T) {
-	name := strings.Repeat("ф", 101)
-	_, err := NewProject(name, "")
-	if !errors.Is(err, ErrTooLongName) {
-		t.Error("cyrilic name length validation failed")
+			if got.Description() != tt.wantDescription {
+				t.Errorf("got description: %v, want %v", got.Description(), tt.wantDescription)
+			}
+		})
 	}
 }
 
 func TestSetName(t *testing.T) {
-	project, err := NewProject("oldName", "")
-	if err != nil {
-		t.Fatal("Unexpected error during create project")
+	tests := []struct {
+		testName string
+		name     string
+		wantName string
+		wantErr  error
+	}{
+		{testName: "валидное имя", name: "firstProject", wantName: "firstProject", wantErr: nil},
+		{testName: "нормализация", name: " \n\t firstProject ", wantName: "firstProject", wantErr: nil},
+		{testName: "длинное имя(латиница)", name: strings.Repeat("a", 101), wantName: "Microservice", wantErr: ErrTooLongName},
+		{testName: "длинное имя(кириллица)", name: strings.Repeat("ф", 101), wantName: "Microservice", wantErr: ErrTooLongName},
+		{testName: "пустое имя", name: "", wantName: "Microservice", wantErr: ErrBlankName},
+		{testName: "имя из пробелов", name: "   ", wantName: "Microservice", wantErr: ErrBlankName},
+		{testName: "имя 100 символов(латиница)", name: strings.Repeat("a", 100), wantName: strings.Repeat("a", 100), wantErr: nil},
+		{testName: "имя 100 символов(кириллица)", name: strings.Repeat("ф", 100), wantName: strings.Repeat("ф", 100), wantErr: nil},
 	}
 
-	err = project.SetName("newName")
-	if err != nil {
-		t.Fatal("Unexpected error during rename project")
-	}
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			project, err := NewProject("Microservice", "")
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			err = project.SetName(tt.name)
 
-	if project.Name() != "newName" {
-		t.Errorf("error during rename project: %v", project.Name())
-	}
-}
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("got err: %v, want %v", err, tt.wantErr)
+			}
 
-func TestSetNameBlank(t *testing.T) {
-	project, err := NewProject("name", "")
-	if err != nil {
-		t.Fatal("Unexpected error during create project")
-	}
-	newName := " "
-	err = project.SetName(newName)
-	if !errors.Is(err, ErrBlankName) {
-		t.Fatal("unexpected error during rename project")
-	}
-
-	if project.Name() != "name" {
-		t.Error("name value should be initial")
-	}
-}
-
-func TestSetNameTooLong(t *testing.T) {
-	project, err := NewProject("name", "")
-	if err != nil {
-		t.Fatal("Unexpected error during create project")
-	}
-	newName := strings.Repeat("a", 101)
-	err = project.SetName(newName)
-	if !errors.Is(err, ErrTooLongName) {
-		t.Fatal("too long validation failed")
-	}
-
-	if project.Name() != "name" {
-		t.Error("name value should be initial")
-	}
-}
-
-func TestSetNameTrim(t *testing.T) {
-	project, err := NewProject("name", "")
-	if err != nil {
-		t.Fatal("Unexpected error during create project")
-	}
-	newName := " a "
-	err = project.SetName(newName)
-	if err != nil {
-		t.Fatal("unexpected error during rename project")
-	}
-	if project.Name() != "a" {
-		t.Error("incorrect trim during setting new name")
-	}
-}
-
-func TestNewProject(t *testing.T) {
-	name := "firstProject"
-	description := "Description for the first project"
-
-	got, err := NewProject(name, description)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if got.Name() != "firstProject" {
-		t.Fatalf("incorrect name: '%s'. Expected: 'firstProject'", got.Name())
-	}
-
-	if got.Description() != "Description for the first project" {
-		t.Errorf("incorrect description: '%s'. Expected: 'Description for the first project'", got.Description())
+			if project.Name() != tt.wantName {
+				t.Errorf("got %v, want %v", project.Name(), tt.wantName)
+			}
+		})
 	}
 }

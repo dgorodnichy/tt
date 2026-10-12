@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/dgorodnichy/tt/internal/domain"
 )
 
 func address() string {
@@ -20,10 +18,9 @@ func address() string {
 }
 
 func main() {
-	p, _ := domain.NewProject("foo", "bar")
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		status, err := json.Marshal(map[string]string{"status": "ok", "name": p.Name()})
+		status, err := json.Marshal(map[string]string{"status": "ok"})
 		if err != nil {
 			log.Printf("incorrect json: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
