@@ -109,16 +109,30 @@ s.items["apple"] = 3   // panic: assignment to entry in nil map
 
 ## Как читать панику
 
-В выводе паники много строк, и почти все — из стандартной библиотеки (`testing.go`, `panic.go`). Их пропускают. Ищут первую сверху строку **с путём к своему файлу** — там и упало. Следующая строка со своим файлом — кто это вызвал.
+Вывод паники — это тот же backtrace, что в Rails, только с шумом. Читать в четыре шага.
+
+**1. Первая строка `--- FAIL` — какой тест.**
+
+**2. Строка `panic:` — что случилось.** Самые частые:
+
+- `assignment to entry in nil map` — запись в `map`, который не создан через `make`;
+- `invalid memory address or nil pointer dereference` — вызвали метод или взяли поле у `nil`. В Ruby это `NoMethodError: undefined method 'weight' for nil`.
+
+Строку `[signal SIGSEGV ...]` под ней пропускаем — это то же самое на языке операционной системы.
+
+**3. Вычеркнуть чужое.** Всё, где путь ведёт в `/libexec/src/` или имя начинается с `testing.`, `panic(`, `runtime.`, — внутренности Go. Строки `goroutine 4 [running]` и `created by ...` тоже пропускаем.
+
+**4. Оставшиеся строки идут парами: функция, под ней `файл:строка`.** Верхняя пара — где упало, следующая — кто её вызвал. Порядок как в Ruby: сверху — место ошибки, ниже — цепочка вызовов.
 
 ```
-panic: assignment to entry in nil map
-...
-	/home/me/shop/internal/store/shelf.go:16      ← здесь упало
-	/home/me/shop/internal/store/shelf_test.go:19 ← отсюда вызвали
+panic: runtime error: invalid memory address or nil pointer dereference
+example.com/shop/internal/store.(*Parcel).Weight(...)
+	/home/me/shop/internal/store/parcel.go:26        ← упало здесь
+example.com/shop/internal/packing.TestPackEmpty(...)
+	/home/me/shop/internal/packing/packing_test.go:50 ← а вызвали отсюда
 ```
 
-В Ruby это backtrace: тоже пропускаешь строки гемов и ищешь первую из `app/`.
+Важно: верхняя строка — где `nil` **использовали**, а не где он появился. Метод `Weight` написан правильно, он просто получил `nil`. Ищи причину на строку ниже — в том, кто этот `nil` передал. В Ruby так же: `NoMethodError` указывает на строку с `.weight`, а виноват тот, кто положил `nil` в переменную.
 
 ## `nil` бывает не у всякого типа
 
