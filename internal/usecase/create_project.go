@@ -1,15 +1,18 @@
 package usecase
 
 import (
-	memory "github.com/dgorodnichy/tt/internal/adapter/memory"
 	domain "github.com/dgorodnichy/tt/internal/domain"
 )
 
 type CreateProject struct {
-	repo *memory.Repo
+	repo ProjectsRepo
 }
 
-func NewCreateProject(repo *memory.Repo) *CreateProject {
+type ProjectsRepo interface {
+	Add(p *domain.Project)
+}
+
+func NewCreateProject(repo ProjectsRepo) *CreateProject {
 	return &CreateProject{repo: repo}
 }
 
