@@ -48,8 +48,8 @@ func TestCreateProjectBlankName(t *testing.T) {
 		t.Fatalf("unexpected error: %q, want: %q", err, domain.ErrBlankName)
 	}
 
-	if _, err := repo.Get("1"); !errors.Is(err, memory.ErrNotFound) {
-		t.Errorf("got error: %q, want: %q", err, memory.ErrNotFound)
+	if _, err := repo.Get("1"); !errors.Is(err, memory.ErrProjectNotFound) {
+		t.Errorf("got error: %q, want: %q", err, memory.ErrProjectNotFound)
 	}
 }
 

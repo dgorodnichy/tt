@@ -6,7 +6,7 @@ import (
 	domain "github.com/dgorodnichy/tt/internal/domain"
 )
 
-var ErrNotFound = errors.New("project not found")
+var ErrProjectNotFound = errors.New("project not found")
 
 type Repo struct {
 	projects map[string]*domain.Project
@@ -22,7 +22,7 @@ func (r *Repo) Add(p *domain.Project) {
 
 func (r *Repo) Get(id string) (*domain.Project, error) {
 	if _, ok := r.projects[id]; !ok {
-		return nil, ErrNotFound
+		return nil, ErrProjectNotFound
 	}
 	return r.projects[id], nil
 }

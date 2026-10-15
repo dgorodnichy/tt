@@ -43,7 +43,7 @@ func TestGetNotFound(t *testing.T) {
 		t.Error("returns incorrect project")
 	}
 
-	if !errors.Is(err, ErrNotFound) {
+	if !errors.Is(err, ErrProjectNotFound) {
 		t.Errorf("incorrect not found processing: %v", err)
 	}
 }
