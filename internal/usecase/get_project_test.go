@@ -4,8 +4,18 @@ import (
 	"errors"
 	"testing"
 
-	memory "github.com/dgorodnichy/tt/internal/adapter/memory"
+	"github.com/dgorodnichy/tt/internal/adapter/memory"
+	"github.com/dgorodnichy/tt/internal/domain"
 )
+
+var ErrNetwork = errors.New("network error")
+
+type FakeRepoGet struct {
+}
+
+func (f *FakeRepoGet) Get(id string) (*domain.Project, error) {
+	return nil, ErrNetwork
+}
 
 func TestGetProject(t *testing.T) {
 	repo := memory.NewRepo()
@@ -44,6 +54,19 @@ func TestGetProjectNotFound(t *testing.T) {
 	got, err := finder.Call("2")
 	if !errors.Is(err, memory.ErrProjectNotFound) {
 		t.Fatalf("unexpected error: %q", err)
+	}
+
+	if got != nil {
+		t.Error("expect nil")
+	}
+}
+
+func TestGetProjectRecieveNetworkError(t *testing.T) {
+	repo := &FakeRepoGet{}
+	usecaseGetProject := NewGetProject(repo)
+	got, err := usecaseGetProject.Call("1")
+	if !errors.Is(err, ErrNetwork) {
+		t.Fatalf("unexpected error: %q, want: %q", err, ErrNetwork)
 	}
 
 	if got != nil {
