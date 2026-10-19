@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	domain "github.com/dgorodnichy/tt/internal/domain"
@@ -116,5 +117,50 @@ func TestGetFromTwoProjectsWithSameID(t *testing.T) {
 
 	if got.Description() != "secondProjectDesc" {
 		t.Fatalf("incorrect description. Got %s, Want %s", got.Description(), "secondProjectDesc")
+	}
+}
+
+func TestAllTwoProjects(t *testing.T) {
+	project1, err := domain.NewProject("1", "firstProjectName", "firstProjectDesc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	project2, err := domain.NewProject("2", "secondProjectName", "secondProjectDesc")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r := NewRepo()
+
+	r.Add(project1)
+	r.Add(project2)
+
+	projects := r.All()
+
+	if len(projects) != 2 {
+		t.Errorf("expected count: %v, got: %v", 2, len(projects))
+	}
+
+	projectNames := []string{}
+
+	for _, p := range projects {
+		projectNames = append(projectNames, p.Name())
+	}
+
+	expectedNames := []string{"firstProjectName", "secondProjectName"}
+
+	for _, en := range expectedNames {
+		if !slices.Contains(projectNames, en) {
+			t.Errorf("Should contains: %v", en)
+		}
+	}
+}
+
+func TestAllNoProjects(t *testing.T) {
+	r := NewRepo()
+	projects := r.All()
+
+	if len(projects) != 0 {
+		t.Errorf("expected count: %v, got: %v", 0, len(projects))
 	}
 }

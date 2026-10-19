@@ -26,3 +26,12 @@ func (r *Repo) Get(id string) (*domain.Project, error) {
 	}
 	return r.projects[id], nil
 }
+
+func (r *Repo) All() []*domain.Project {
+	projects := []*domain.Project{}
+	for _, p := range r.projects {
+		projects = append(projects, p)
+	}
+
+	return projects
+}
