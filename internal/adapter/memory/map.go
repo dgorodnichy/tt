@@ -36,7 +36,7 @@ func (r *Repo) All() []*domain.Project {
 	return projects
 }
 
-func (r *Repo) Delete(id string) (error) {
+func (r *Repo) Delete(id string) error {
 	if _, ok := r.projects[id]; !ok {
 		return ErrProjectNotFound
 	}

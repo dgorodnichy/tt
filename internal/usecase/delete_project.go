@@ -12,7 +12,7 @@ func NewDeleteProject(projects Remover) *DeleteProject {
 	return &DeleteProject{projects}
 }
 
-func (dp *DeleteProject) Call(id string) (error) {
+func (dp *DeleteProject) Call(id string) error {
 	err := dp.projects.Delete(id)
 	if err != nil {
 		return err

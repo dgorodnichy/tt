@@ -164,3 +164,57 @@ func TestAllNoProjects(t *testing.T) {
 		t.Errorf("expected count: %v, got: %v", 0, len(projects))
 	}
 }
+
+func TestDeleteProject(t *testing.T) {
+	project1, err := domain.NewProject("1", "firstProjectName", "firstProjectDesc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	project2, err := domain.NewProject("2", "secondProjectName", "secondProjectDesc")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r := NewRepo()
+
+	r.Add(project1)
+	r.Add(project2)
+
+	projects := r.All()
+
+	if len(projects) != 2 {
+		t.Fatalf("expected count: %v, got: %v", 2, len(projects))
+	}
+
+	err = r.Delete("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	projects = r.All()
+
+	if len(projects) != 1 {
+		t.Fatalf("expected count: %v, got: %v", 1, len(projects))
+	}
+
+	_, err = r.Get("1")
+	if !errors.Is(err, ErrProjectNotFound) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got, err := r.Get("2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Name() != "secondProjectName" {
+		t.Fatal("unexpected project")
+	}
+}
+
+func TestDeleteProjectNotFound(t *testing.T) {
+	r := NewRepo()
+	err := r.Delete("999")
+	if !errors.Is(err, ErrProjectNotFound) {
+		t.Fatalf("expect: %v, got: %v", ErrProjectNotFound, err)
+	}
+}
