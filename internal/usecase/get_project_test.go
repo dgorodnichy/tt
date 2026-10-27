@@ -11,10 +11,30 @@ import (
 var ErrNetwork = errors.New("network error")
 
 type FakeRepo struct {
+	project    *domain.Project
+	err        error
+	addCounter int
+	getCounter int
+	delCounter int
+}
+
+func NewFakeRepo(project *domain.Project, err error, addCounter int, getCounter int, delCounter int) *FakeRepo {
+	return &FakeRepo{project, err, addCounter, getCounter, delCounter}
+}
+
+func (f *FakeRepo) Add(p *domain.Project) {
+	f.addCounter++
 }
 
 func (f *FakeRepo) Get(id string) (*domain.Project, error) {
-	return nil, ErrNetwork
+	f.getCounter++
+
+	return f.project, f.err
+}
+
+func (f *FakeRepo) Delete(id string) error {
+	f.delCounter++
+	return f.err
 }
 
 func TestGetProject(t *testing.T) {
@@ -62,7 +82,7 @@ func TestGetProjectNotFound(t *testing.T) {
 }
 
 func TestGetProjectRecieveNetworkError(t *testing.T) {
-	repo := &FakeRepo{}
+	repo := NewFakeRepo(nil, ErrNetwork, 0, 0, 0)
 	usecaseGetProject := NewGetProject(repo)
 	got, err := usecaseGetProject.Call("1")
 	if !errors.Is(err, ErrNetwork) {

@@ -7,10 +7,6 @@ import (
 	"github.com/dgorodnichy/tt/internal/adapter/memory"
 )
 
-func (f *FakeRepo) Delete(id string) error {
-	return ErrNetwork
-}
-
 func TestDeleteProject(t *testing.T) {
 	repo := memory.NewRepo()
 	creater := NewCreateProject(repo)
@@ -57,7 +53,7 @@ func TestDeleteProject(t *testing.T) {
 }
 
 func TestDeleteProjectRecieveNetworkError(t *testing.T) {
-	repo := &FakeRepo{}
+	repo := NewFakeRepo(nil, ErrNetwork, 0, 0, 0)
 	usecaseDeleteProject := NewDeleteProject(repo)
 	err := usecaseDeleteProject.Call("1")
 	if !errors.Is(err, ErrNetwork) {
